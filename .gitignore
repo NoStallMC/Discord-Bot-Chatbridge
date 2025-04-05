@@ -114,3 +114,10 @@ modules.xml
 hs_err_pid*
 
 # End of https://www.gitignore.io/api/java,intellij+all
+.project
+/bin/
+/.settings
+/.externalToolBuilders
+.classpath
+build.xml
+depend.txt
