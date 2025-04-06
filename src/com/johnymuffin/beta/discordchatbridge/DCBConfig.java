@@ -2,8 +2,8 @@ package com.johnymuffin.beta.discordchatbridge;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;
-
 import java.io.File;
+import java.util.Arrays;
 
 public class DCBConfig extends Configuration {
 
@@ -41,17 +41,18 @@ public class DCBConfig extends Configuration {
         generateConfigOption("authentication.enabled", false);
         generateConfigOption("authentication.discord.only-allow-linked-users", true);
         generateConfigOption("authentication.discord.use-in-game-names-if-available", true);
-
         //JohnyPerms Prefix Support
         generateConfigOption("johnyperms-prefix-support.enabled", false);
         generateConfigOption("johnyperms-prefix-support.info", "This option when enabled will display a users prefix from JohnyPerms in front of their name in chat when they send a message from Discord.");
-
         //Webhook
         generateConfigOption("webhook.use-webhook", false);
         generateConfigOption("webhook.url", "url");
         generateConfigOption("webhook.info", "This option when configured with webhook and enabled allows for messages posted by the bot to use a players avatar and username.");
-
-
+        //Server Shell
+        generateConfigOption("server-shell.enabled", false);
+        generateConfigOption("server-shell.shell-channel-id", "id");
+        generateConfigOption("server-shell.allowed-users", Arrays.asList("id1", "id2"));
+        generateConfigOption("server-shell.info", "If enabled, allows execution of server commands from Discord. Be VERY careful with this.");
     }
 
     private void generateConfigOption(String key, Object defaultValue) {
