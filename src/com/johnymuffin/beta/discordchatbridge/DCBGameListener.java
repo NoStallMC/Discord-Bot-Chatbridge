@@ -3,9 +3,8 @@ package com.johnymuffin.beta.discordchatbridge;
 import org.bukkit.Bukkit;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
-
+import org.bukkit.event.player.PlayerListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -21,7 +20,7 @@ public class DCBGameListener extends PlayerListener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         String chatMessage = plugin.getConfig().getConfigString("message.join-message");
         if (plugin.getConfig().getConfigBoolean("message.use-displayname")) {
-        	chatMessage = chatMessage.replace("%username%", sanitizeDisplayName(event.getPlayer().getDisplayName()));
+            chatMessage = chatMessage.replace("%username%", sanitizeDisplayName(event.getPlayer().getDisplayName()));
         }
         else {
             chatMessage = chatMessage.replace("%username%", event.getPlayer().getName());
@@ -35,10 +34,10 @@ public class DCBGameListener extends PlayerListener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         String chatMessage = plugin.getConfig().getConfigString("message.quit-message");
         if (plugin.getConfig().getConfigBoolean("message.use-displayname")) {
-        	chatMessage = chatMessage.replace("%username%", sanitizeDisplayName(event.getPlayer().getDisplayName()));
+            chatMessage = chatMessage.replace("%username%", sanitizeDisplayName(event.getPlayer().getDisplayName()));
         }
         else {
-        	chatMessage = chatMessage.replace("%username%", event.getPlayer().getName());
+            chatMessage = chatMessage.replace("%username%", event.getPlayer().getName());
         }
         chatMessage = chatMessage.replace("%onlineCount%", String.valueOf(Bukkit.getServer().getOnlinePlayers().length - 1));
         chatMessage = chatMessage.replace("%maxCount%", String.valueOf(Bukkit.getServer().getMaxPlayers()));
@@ -54,7 +53,7 @@ public class DCBGameListener extends PlayerListener {
         if (plugin.getConfig().getConfigBoolean("webhook.use-webhook")) {
             final DiscordWebhook webhookMessage = new DiscordWebhook(plugin.getConfig().getConfigString("webhook.url"));
             if (plugin.getConfig().getConfigBoolean("message.use-displayname")) {
-            	webhookMessage.setUsername(sanitizeDisplayName(event.getPlayer().getDisplayName()));
+                webhookMessage.setUsername(sanitizeDisplayName(event.getPlayer().getDisplayName()));
             }
             else {
                 webhookMessage.setUsername(event.getPlayer().getName());
@@ -69,11 +68,10 @@ public class DCBGameListener extends PlayerListener {
                     plugin.logger(Level.INFO, "Failed to send message through webhook to Discord chat channel: " + exception + " : " + exception.getMessage());
                 }
             }, 0L);
-
         } else {
             String chatMessage = plugin.getConfig().getConfigString("message.game-chat-message");
             if (plugin.getConfig().getConfigBoolean("message.use-displayname")) {
-            	chatMessage = chatMessage.replace("%messageAuthor%", sanitizeDisplayName(event.getPlayer().getDisplayName()));
+                chatMessage = chatMessage.replace("%messageAuthor%", sanitizeDisplayName(event.getPlayer().getDisplayName()));
             }
             else {
                 chatMessage = chatMessage.replace("%messageAuthor%", event.getPlayer().getName());
@@ -97,5 +95,4 @@ public class DCBGameListener extends PlayerListener {
         chatMessage = chatMessage.replaceAll(Pattern.quote("@"), " ");
         return chatMessage;
     }
-
 }

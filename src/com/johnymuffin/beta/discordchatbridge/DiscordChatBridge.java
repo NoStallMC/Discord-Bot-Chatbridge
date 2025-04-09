@@ -10,7 +10,6 @@ import org.bukkit.event.CustomEventListener;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,13 +26,15 @@ public class DiscordChatBridge extends JavaPlugin {
     private boolean enabled = false;
     private Integer taskID = null;
     private boolean shutdown = false;
-
+    private BlacklistManager blacklistManager;
+    
     @Override
     public void onEnable() {
         plugin = this;
         log = this.getServer().getLogger();
         pdf = this.getDescription();
         pluginName = pdf.getName();
+        this.blacklistManager = new BlacklistManager(this);
         log.info("[" + pluginName + "] Is Loading, Version: " + pdf.getVersion());
 
         if (!Bukkit.getServer().getPluginManager().isPluginEnabled("DiscordCore")) {
@@ -83,7 +84,6 @@ public class DiscordChatBridge extends JavaPlugin {
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_CHAT, gameListener, Event.Priority.Highest, this);
         final ShutdownListener shutdownListener = new ShutdownListener();
         getServer().getPluginManager().registerEvent(Event.Type.CUSTOM_EVENT, shutdownListener, Event.Priority.Normal, plugin);
-
         enabled = true;
 
         //Use runnable to ensure message is posted once server is started
@@ -104,13 +104,9 @@ public class DiscordChatBridge extends JavaPlugin {
                     bktString = bktString.replace("{maxOnlineCount}", String.valueOf(Bukkit.getServer().getMaxPlayers()));
                     getDiscordCore().getDiscordBot().jda.getPresence().setActivity(Activity.playing(bktString));
                 }
-
-
             }, 0L, 20 * 60);
         }
-
     }
-
     @Override
     public void onDisable() {
         if (enabled) {
@@ -118,28 +114,24 @@ public class DiscordChatBridge extends JavaPlugin {
             if (!shutdown) {
                 handleDiscordCoreShutdown();
             }
-
-
             discordCore.getDiscordBot().jda.removeEventListener(discordListener);
             Bukkit.getServer().getScheduler().cancelTask(taskID);
         }
         logger(Level.INFO, "Has been disabled.");
     }
-
-
     public void logger(Level level, String message) {
         log.log(level, "[" + pluginName + "] " + message);
     }
-
-
     public DCBConfig getConfig() {
         return dcbConfig;
     }
-
     public DiscordCore getDiscordCore() {
         return discordCore;
     }
-
+    public BlacklistManager getBlacklistManager() {
+        return this.blacklistManager;
+    }
+    
     protected void handleDiscordCoreShutdown() {
         //Discord Shutdown Message
         shutdown = true;
@@ -150,10 +142,7 @@ public class DiscordChatBridge extends JavaPlugin {
             textChannel.sendMessage(message).complete();
         }
     }
-
-
     private class ShutdownListener extends CustomEventListener {
-
         @Override
         public void onCustomEvent(Event event) {
             if (!(event instanceof DiscordShutdownEvent)) {
@@ -165,8 +154,6 @@ public class DiscordChatBridge extends JavaPlugin {
             handleDiscordCoreShutdown();
             //Force disable this plugin first as it requires DiscordCore to function.
             Bukkit.getServer().getPluginManager().disablePlugin(plugin);
-
         }
-
     }
 }

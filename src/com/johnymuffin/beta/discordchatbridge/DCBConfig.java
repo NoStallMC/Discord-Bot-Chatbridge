@@ -53,6 +53,8 @@ public class DCBConfig extends Configuration {
         generateConfigOption("server-shell.shell-channel-id", "id");
         generateConfigOption("server-shell.allowed-users", Arrays.asList("id1", "id2"));
         generateConfigOption("server-shell.info", "If enabled, allows execution of server commands from Discord. Be VERY careful with this.");
+        //Blacklist
+        generateConfigOption("blacklist", false);
     }
 
     private void generateConfigOption(String key, Object defaultValue) {
