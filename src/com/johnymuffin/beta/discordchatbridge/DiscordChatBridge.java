@@ -20,9 +20,9 @@ public class DiscordChatBridge extends JavaPlugin {
     private String pluginName;
     private PluginDescriptionFile pdf;
     private DiscordCore discordCore;
-    private DCBConfig dcbConfig;
+    private Config dcbConfig;
     //Other plugin stuff
-    private DCBDiscordListener discordListener; //Discord Listener
+    private DiscordListener discordListener; //Discord Listener
     private boolean enabled = false;
     private Integer taskID = null;
     private boolean shutdown = false;
@@ -45,7 +45,7 @@ public class DiscordChatBridge extends JavaPlugin {
             Bukkit.getServer().getPluginManager().disablePlugin(plugin);
             return;
         }
-        dcbConfig = new DCBConfig(plugin);
+        dcbConfig = new Config(plugin);
         if (dcbConfig.getConfigString("channel-id").isEmpty() || dcbConfig.getConfigString("channel-id").equalsIgnoreCase("id")) {
             log.info("}----------------------------ERROR----------------------------{");
             this.log.info("Please provide a Servername and Channel for the Link");
@@ -75,10 +75,10 @@ public class DiscordChatBridge extends JavaPlugin {
         //Discord Core
         discordCore = (DiscordCore) Bukkit.getServer().getPluginManager().getPlugin("DiscordCore");
         //Discord Listener
-        discordListener = new DCBDiscordListener(plugin);
+        discordListener = new DiscordListener(plugin);
         discordCore.getDiscordBot().jda.addEventListener(discordListener);
         //Discord Game Bridge
-        final DCBGameListener gameListener = new DCBGameListener(plugin);
+        final GameListener gameListener = new GameListener(plugin);
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_JOIN, gameListener, Event.Priority.Monitor, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_QUIT, gameListener, Event.Priority.Monitor, this);
         getServer().getPluginManager().registerEvent(Event.Type.PLAYER_CHAT, gameListener, Event.Priority.Highest, this);
@@ -122,7 +122,7 @@ public class DiscordChatBridge extends JavaPlugin {
     public void logger(Level level, String message) {
         log.log(level, "[" + pluginName + "] " + message);
     }
-    public DCBConfig getConfig() {
+    public Config getConfig() {
         return dcbConfig;
     }
     public DiscordCore getDiscordCore() {

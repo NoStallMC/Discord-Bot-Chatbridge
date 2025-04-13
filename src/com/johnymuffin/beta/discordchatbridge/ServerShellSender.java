@@ -1,5 +1,6 @@
 package com.johnymuffin.beta.discordchatbridge;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -7,14 +8,29 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class ServerShellSender implements CommandSender {
 
+    private final List<String> output = new ArrayList<>();
+
+    public List<String> getOutput() {
+        return output;
+    }
+
     @Override
     public void sendMessage(String message) {
+        output.add(ChatColor.stripColor(message));
         System.out.println("[DiscordShell] " + ChatColor.stripColor(message));
+    }
+
+    public void sendMessage(String[] messages) {
+        for (String message : messages) {
+            sendMessage(message);
+        }
     }
 
     @Override
@@ -23,9 +39,7 @@ public class ServerShellSender implements CommandSender {
     }
 
     @Override
-    public void setOp(boolean value) {
-        // No-op
-    }
+    public void setOp(boolean value) {}
 
     @Override
     public String getName() {
@@ -34,7 +48,7 @@ public class ServerShellSender implements CommandSender {
 
     @Override
     public Server getServer() {
-        return org.bukkit.Bukkit.getServer();
+        return Bukkit.getServer();
     }
 
     @Override

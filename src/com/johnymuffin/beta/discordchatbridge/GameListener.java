@@ -9,10 +9,10 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-public class DCBGameListener extends PlayerListener {
+public class GameListener extends PlayerListener {
     private DiscordChatBridge plugin;
 
-    public DCBGameListener(DiscordChatBridge plugin) {
+    public GameListener(DiscordChatBridge plugin) {
         this.plugin = plugin;
     }
 

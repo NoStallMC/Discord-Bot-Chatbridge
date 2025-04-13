@@ -5,10 +5,10 @@ import org.bukkit.util.config.Configuration;
 import java.io.File;
 import java.util.Arrays;
 
-public class DCBConfig extends Configuration {
+public class Config extends Configuration {
 
 
-    public DCBConfig(Plugin plugin) {
+    public Config(Plugin plugin) {
         super(new File(plugin.getDataFolder(), "config.yml"));
         this.reload();
     }

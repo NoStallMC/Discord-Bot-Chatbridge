@@ -16,26 +16,23 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class DCBDiscordListener extends ListenerAdapter {
+public class DiscordListener extends ListenerAdapter {
     private DiscordChatBridge plugin;
 
-    public DCBDiscordListener(DiscordChatBridge plugin) {
+    public DiscordListener(DiscordChatBridge plugin) {
         this.plugin = plugin;
     }
 
     @SuppressWarnings("deprecation")
 	@Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        //Don't respond to bots
         if (event.getAuthor().isBot() || event.isWebhookMessage()) {
             return;
         }
-        //Don't respond to funky messages
         if (event.getMessage().getContentRaw().isEmpty()) {
             return;
         }
         String content = event.getMessage().getContentRaw();
-        //Server Shell Command Execution- ~jkoo
         if (plugin.getConfig().getConfigBoolean("server-shell.enabled") &&
         	    event.getChannel().getId().equals(plugin.getConfig().getConfigString("server-shell.shell-channel-id"))) {
         	    List<?> rawList = (List<?>) plugin.getConfig().getConfigOption("server-shell.allowed-users");
@@ -45,7 +42,6 @@ public class DCBDiscordListener extends ListenerAdapter {
         	    }
         	    if (allowedUsers.contains(event.getAuthor().getId())) {
         	        String command = event.getMessage().getContentRaw();
-                    //Blacklist check
                     BlacklistManager blacklist = plugin.getBlacklistManager();
                     if (blacklist.isCommandBlacklisted(content)) {
                     	if (plugin.getConfig().getConfigBoolean("blacklist")) {
@@ -53,15 +49,25 @@ public class DCBDiscordListener extends ListenerAdapter {
                         return;
                     	}
                     }
-        	        Bukkit.getLogger().info("[DiscordShell] executing command: " + command);
-        	        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-        	            boolean result = Bukkit.dispatchCommand(new ServerShellSender(), command);
-        	            if (result) {
-        	                event.getChannel().sendMessage(":white_check_mark: Executed: `" + command + "`").queue();
-        	            } else {
-        	                event.getChannel().sendMessage(":x: Unknown or failed command: `" + command + "`").queue();
-        	            }
-        	        });
+                    Bukkit.getLogger().info("[DiscordShell] executing command: " + command);
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                        ServerShellSender sender = new ServerShellSender();
+                        boolean result = Bukkit.dispatchCommand(sender, content);
+                        List<String> output = sender.getOutput();
+                        if (!result || output.isEmpty()) {
+                            event.getChannel().sendMessage(":x: Unknown or failed command: `" + content + "`").queue();
+                            return;
+                        }
+                        StringBuilder builder = new StringBuilder(":white_check_mark: **Executed:** `" + content + "`\n```\n");
+                        for (int i = 0; i < Math.min(output.size(), 10); i++) {
+                            builder.append(output.get(i)).append("\n");
+                        }
+                        if (output.size() > 10) {
+                            builder.append("... (truncated)\n");
+                        }
+                        builder.append("```");
+                        event.getChannel().sendMessage(builder.toString()).queue();
+                    });
         	        return;
         	    } else {
         	        event.getChannel().sendMessage(":no_entry_sign: You are not authorized to use the server-shell.").queue();
@@ -71,15 +77,9 @@ public class DCBDiscordListener extends ListenerAdapter {
     
         String gameBridgeChannelID = plugin.getConfig().getConfigString("channel-id");
         String[] messageCMD = event.getMessage().getContentRaw().split(" ");
-
-        //Sorry for the mess of copy pasting the code into each if statement -Owen2k6
-        //Online Command
         if (messageCMD[0].equalsIgnoreCase("!online") && plugin.getConfig().getConfigBoolean("online-command-enabled")) {
-            //Check for if its enabled.
             if (plugin.getConfig().getConfigBoolean("bot-command-channel-enabled")) {
-                //Does it match?
                 if (Objects.equals(plugin.getConfig().getConfigString("bot-command-channel-id"), event.getChannel().getId())) {
-                    //Begin Online Command Response
                     String onlineMessage = "**The online players are:** ";
                     for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                         onlineMessage += p.getName() + ", ";
@@ -94,14 +94,12 @@ public class DCBDiscordListener extends ListenerAdapter {
                     eb.setColor(Color.red);
                     eb.setDescription("There are currently **" + Bukkit.getServer().getOnlinePlayers().length + "** players online\n" + onlineMessage);
                     eb.setFooter("https://github.com/RhysB/Discord-Bot-Chatbridge", "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png");
-
                     event.getChannel().sendMessage(eb.build()).queue();
                     return;
                 }
                 if (plugin.getConfig().getConfigString("bot-command-channel-id").isEmpty() || Objects.equals(plugin.getConfig().getConfigString("bot-command-channel-id"), "id")) {
                     Bukkit.getLogger().warning("You appear to have forgotten to add a channel ID. go to the config and add an ID or disable the bot command channel limiter");
                     Bukkit.getLogger().info("Will proceed like the feature is disabled.");
-                    //begin Online Command Response
                     String onlineMessage = "**The online players are:** ";
                     for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                         onlineMessage += p.getName() + ", ";
@@ -118,15 +116,11 @@ public class DCBDiscordListener extends ListenerAdapter {
                             + "** players online\n" + onlineMessage);
                     eb.setFooter("https://github.com/RhysB/Discord-Bot-Chatbridge",
                             "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png");
-
                     event.getChannel().sendMessage(eb.build()).queue();
                     return;
                 }
-
             }
-            //Check for if it's not enabled
             if (!plugin.getConfig().getConfigBoolean("bot-command-channel-enabled")) {
-                //begin Online Command Response
                 String onlineMessage = "**The online players are:** ";
                 for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                     onlineMessage += p.getName() + ", ";
@@ -143,13 +137,11 @@ public class DCBDiscordListener extends ListenerAdapter {
                         + "** players online\n" + onlineMessage);
                 eb.setFooter("https://github.com/RhysB/Discord-Bot-Chatbridge",
                         "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png");
-
                 event.getChannel().sendMessage(eb.build()).queue();
                 return;
             }
         }
 
-        //Is the message in the game bridge channel
         if (event.getChannel().getId().equalsIgnoreCase(gameBridgeChannelID)) {
             String displayName = null;
             String prefix = null;
@@ -157,12 +149,9 @@ public class DCBDiscordListener extends ListenerAdapter {
 
             if (plugin.getConfig().getConfigBoolean("authentication.enabled")) {
                 DiscordAuthentication authPlugin = (DiscordAuthentication) Bukkit.getServer().getPluginManager().getPlugin("DiscordAuthentication");
-
-                //Get playerUUID from DiscordID if possible
                 if (authPlugin.getData().isDiscordIDAlreadyLinked(event.getAuthor().getId())) {
                     playerUUID = UUID.fromString(authPlugin.getData().getUUIDFromDiscordID(event.getAuthor().getId()));
                 }
-
                 if (plugin.getConfig().getConfigBoolean("authentication.discord.only-allow-linked-users")) {
                     if (!authPlugin.getData().isDiscordIDAlreadyLinked(event.getAuthor().getId())) {
                         event.getChannel().sendMessage(plugin.getConfig().getString("message.require-link")).queue();
@@ -174,12 +163,10 @@ public class DCBDiscordListener extends ListenerAdapter {
                 }
             }
 
-            //Check for prefix
             if (this.plugin.getConfig().getConfigBoolean("johnyperms-prefix-support.enabled")) {
                 if (playerUUID != null) {
                     if (Bukkit.getPluginManager().isPluginEnabled("JPerms")) {
                         JohnyPerms jperms = (JohnyPerms) Bukkit.getServer().getPluginManager().getPlugin("JPerms");
-                        //Attempt to get prefix from JohnyPerms for user then group
                         prefix = jperms.getUser(playerUUID).getPrefix();
                         if (prefix == null) {
                             prefix = jperms.getUser(playerUUID).getGroup().getPrefix();
@@ -192,7 +179,6 @@ public class DCBDiscordListener extends ListenerAdapter {
                 }
             }
 
-            //Reimplemented from f0f832
             String dmsg = event.getMessage().getContentDisplay();
             dmsg = dmsg.replaceAll("(&([a-f0-9]))", "\u00A7$2");
             if (!plugin.getConfig().getConfigBoolean("message.allow-chat-colors")) {
@@ -207,7 +193,6 @@ public class DCBDiscordListener extends ListenerAdapter {
                 }
             }
 
-            //Final prefix check
             if (prefix == null) {
                 prefix = "";
             }
